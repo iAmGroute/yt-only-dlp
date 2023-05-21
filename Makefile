@@ -2,17 +2,15 @@ all: yt-dlp doc pypi-files
 clean: clean-test clean-dist
 clean-all: clean clean-cache
 completions: completion-bash completion-fish completion-zsh
-doc: README.md CONTRIBUTING.md issuetemplates supportedsites
-ot: offlinetest
 tar: yt-dlp.tar.gz
 
 # Keep this list in sync with MANIFEST.in
 # intended use: when building a source distribution,
 # make pypi-files && python setup.py sdist
-pypi-files: AUTHORS Changelog.md LICENSE README.md README.txt supportedsites \
-	        completions yt-dlp.1 requirements.txt setup.cfg devscripts/* test/*
+pypi-files: AUTHORS Changelog.md LICENSE README.md README.txt \
+	        completions yt-dlp.1 requirements.txt setup.cfg devscripts/*
 
-.PHONY: all clean install test tar pypi-files completions ot offlinetest codetest supportedsites
+.PHONY: all clean install tar pypi-files completions
 
 clean-test:
 	rm -rf test/testdata/sigs/player-*.js tmp/ *.annotations.xml *.aria2 *.description *.dump *.frag \
@@ -62,16 +60,6 @@ uninstall:
 	rm -f $(DESTDIR)$(SHAREDIR)/zsh/site-functions/_yt-dlp
 	rm -f $(DESTDIR)$(SHAREDIR)/fish/vendor_completions.d/yt-dlp.fish
 
-codetest:
-	flake8 .
-
-test:
-	$(PYTHON) -m pytest
-	$(MAKE) codetest
-
-offlinetest: codetest
-	$(PYTHON) -m pytest -k "not download"
-
 # XXX: This is hard to maintain
 CODE_FOLDERS = yt_dlp yt_dlp/downloader yt_dlp/extractor yt_dlp/postprocessor yt_dlp/compat yt_dlp/dependencies
 yt-dlp: yt_dlp/*.py yt_dlp/*/*.py
@@ -88,26 +76,6 @@ yt-dlp: yt_dlp/*.py yt_dlp/*/*.py
 	cat yt-dlp.zip >> yt-dlp
 	rm yt-dlp.zip
 	chmod a+x yt-dlp
-
-README.md: yt_dlp/*.py yt_dlp/*/*.py devscripts/make_readme.py
-	COLUMNS=80 $(PYTHON) yt_dlp/__main__.py --ignore-config --help | $(PYTHON) devscripts/make_readme.py
-
-CONTRIBUTING.md: README.md devscripts/make_contributing.py
-	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
-
-issuetemplates: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/1_broken_site.yml .github/ISSUE_TEMPLATE_tmpl/2_site_support_request.yml .github/ISSUE_TEMPLATE_tmpl/3_site_feature_request.yml .github/ISSUE_TEMPLATE_tmpl/4_bug_report.yml .github/ISSUE_TEMPLATE_tmpl/5_feature_request.yml yt_dlp/version.py
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/1_broken_site.yml .github/ISSUE_TEMPLATE/1_broken_site.yml
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/2_site_support_request.yml .github/ISSUE_TEMPLATE/2_site_support_request.yml
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/3_site_feature_request.yml .github/ISSUE_TEMPLATE/3_site_feature_request.yml
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/4_bug_report.yml .github/ISSUE_TEMPLATE/4_bug_report.yml
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/5_feature_request.yml .github/ISSUE_TEMPLATE/5_feature_request.yml
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/6_question.yml .github/ISSUE_TEMPLATE/6_question.yml
-
-supportedsites:
-	$(PYTHON) devscripts/make_supportedsites.py supportedsites.md
-
-README.txt: README.md
-	pandoc -f $(MARKDOWN) -t plain README.md -o README.txt
 
 yt-dlp.1: README.md devscripts/prepare_manpage.py
 	$(PYTHON) devscripts/prepare_manpage.py yt-dlp.1.temp.md
@@ -141,7 +109,7 @@ yt-dlp.tar.gz: all
 		CONTRIBUTING.md Collaborators.md CONTRIBUTORS AUTHORS \
 		Makefile MANIFEST.in yt-dlp.1 README.txt completions \
 		setup.py setup.cfg yt-dlp yt_dlp requirements.txt \
-		devscripts test
+		devscripts
 
 AUTHORS: .mailmap
 	git shortlog -s -n | cut -f2 | sort > AUTHORS
