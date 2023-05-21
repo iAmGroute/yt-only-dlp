@@ -1,4 +1,4 @@
-all: lazy-extractors yt-dlp doc pypi-files
+all: yt-dlp doc pypi-files
 clean: clean-test clean-dist
 clean-all: clean clean-cache
 completions: completion-bash completion-fish completion-zsh
@@ -21,7 +21,7 @@ clean-test:
 	*.mp4 *.mpga *.oga *.ogg *.opus *.png *.sbv *.srt *.swf *.swp *.tt *.ttml *.url *.vtt *.wav *.webloc *.webm *.webp
 clean-dist:
 	rm -rf yt-dlp.1.temp.md yt-dlp.1 README.txt MANIFEST build/ dist/ .coverage cover/ yt-dlp.tar.gz completions/ \
-	yt_dlp/extractor/lazy_extractors.py *.spec CONTRIBUTING.md.tmp yt-dlp yt-dlp.exe yt_dlp.egg-info/ AUTHORS .mailmap
+	*.spec CONTRIBUTING.md.tmp yt-dlp yt-dlp.exe yt_dlp.egg-info/ AUTHORS .mailmap
 clean-cache:
 	find . \( \
 		-type d -name .pytest_cache -o -type d -name __pycache__ -o -name "*.pyc" -o -name "*.class" \
@@ -30,7 +30,6 @@ clean-cache:
 completion-bash: completions/bash/yt-dlp
 completion-fish: completions/fish/yt-dlp.fish
 completion-zsh: completions/zsh/_yt-dlp
-lazy-extractors: yt_dlp/extractor/lazy_extractors.py
 
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
@@ -44,7 +43,7 @@ SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then ech
 # set markdown input format to "markdown-smart" for pandoc version 2 and to "markdown" for pandoc prior to version 2
 MARKDOWN = $(shell if [ `pandoc -v | head -n1 | cut -d" " -f2 | head -c1` = "2" ]; then echo markdown-smart; else echo markdown; fi)
 
-install: lazy-extractors yt-dlp yt-dlp.1 completions
+install: yt-dlp yt-dlp.1 completions
 	mkdir -p $(DESTDIR)$(BINDIR)
 	install -m755 yt-dlp $(DESTDIR)$(BINDIR)/yt-dlp
 	mkdir -p $(DESTDIR)$(MANDIR)/man1
@@ -126,10 +125,6 @@ completions/zsh/_yt-dlp: yt_dlp/*.py yt_dlp/*/*.py devscripts/zsh-completion.in
 completions/fish/yt-dlp.fish: yt_dlp/*.py yt_dlp/*/*.py devscripts/fish-completion.in
 	mkdir -p completions/fish
 	$(PYTHON) devscripts/fish-completion.py
-
-_EXTRACTOR_FILES = $(shell find yt_dlp/extractor -name '*.py' -and -not -name 'lazy_extractors.py')
-yt_dlp/extractor/lazy_extractors.py: devscripts/make_lazy_extractors.py devscripts/lazy_load_template.py $(_EXTRACTOR_FILES)
-	$(PYTHON) devscripts/make_lazy_extractors.py $@
 
 yt-dlp.tar.gz: all
 	@tar -czf yt-dlp.tar.gz --transform "s|^|yt-dlp/|" --owner 0 --group 0 \

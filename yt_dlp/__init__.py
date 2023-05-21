@@ -93,17 +93,11 @@ def get_urls(urls, batchfile, verbose):
 def print_extractor_information(opts, urls):
     out = ''
     if opts.list_extractors:
-        # Importing GenericIE is currently slow since it imports YoutubeIE
-        from .extractor.generic import GenericIE
-
         urls = dict.fromkeys(urls, False)
         for ie in list_extractor_classes(opts.age_limit):
             out += ie.IE_NAME + (' (CURRENTLY BROKEN)' if not ie.working() else '') + '\n'
-            if ie == GenericIE:
-                matched_urls = [url for url, matched in urls.items() if not matched]
-            else:
-                matched_urls = tuple(filter(ie.suitable, urls.keys()))
-                urls.update(dict.fromkeys(matched_urls, True))
+            matched_urls = tuple(filter(ie.suitable, urls.keys()))
+            urls.update(dict.fromkeys(matched_urls, True))
             out += ''.join(f'  {url}\n' for url in matched_urls)
     elif opts.list_extractor_descriptions:
         _SEARCHES = ('cute kittens', 'slithering pythons', 'falling cat', 'angry poodle', 'purple fish', 'running tortoise', 'sleeping bunny', 'burping cow')
